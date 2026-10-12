@@ -2,10 +2,9 @@ import { useState } from "react";
 import TableRow from "./TableRow";
 import TableFooter from "./TableFooter";
 
-
 export interface ITableData {
   id: string;
-  isChecked:boolean;
+  isChecked: boolean;
   Debit: string;
   Credit: string;
   Account: string;
@@ -16,60 +15,78 @@ export interface ITableData {
   Description: string;
 }
 
-const createInitialRow: ITableData = {
-  id: crypto.randomUUID(),
-  isChecked:false,
-  Debit: "0",
-  Credit: "0",
-  Account: "",
-  Currency: "JD",
-  Rate: "1.0000",
-  Date: new Date().toISOString().split("T")[0],
-  CostCenter: "",
-  Description: "",
-};
+  function createEmptyRow(): ITableData {
+    return {
+      id: crypto.randomUUID(), 
+      isChecked: false,
+      Debit: "0",
+      Credit: "0",
+      Account: "",
+      Currency: "JD",
+      Rate: "1.0000",
+      Date: new Date().toISOString().split("T")[0],
+      CostCenter: "",
+      Description: "",
+    };
+  }
 
+  export default function Table() {
+    const [tableData, setTableData] = useState<ITableData[]>([createEmptyRow()]);
 
+  
 
-export default function Table() {
-  const [tebleData, setTableData] = useState<ITableData[]>([
-    createInitialRow,
-    createInitialRow,
-    createInitialRow,
-    createInitialRow,
-    createInitialRow,
-    createInitialRow,
-    createInitialRow,
-  ]);
+    function handleAddRow(){
+      setTableData([...tableData , createEmptyRow()]) 
+      
+    }
 
-
- function handleInputChange(
-  id: string,
-  field: keyof ITableData,
-  value: string
-) {
-  setTableData(function (prevRows) {
-    return prevRows.map((row)=> {
-      if (row.id !== id) {
-        return row;
+  function handleKeyDown(e: React.KeyboardEvent<HTMLElement>) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const currentElement = e.target as HTMLElement;
+    const allInputs = Array.from(
+      document.querySelectorAll<HTMLElement>(
+        '[data-nav="cell"]:not([disabled])',
+      ),
+    );
+    const currentIndex = allInputs.indexOf(currentElement);
+    const nextElement = allInputs[currentIndex + 1];
+    if (nextElement) {
+      nextElement.focus();
+    }else{
+      const lastRow = tableData[tableData.length - 1];
+      if(lastRow.Account !== "" &&  (parseFloat(lastRow.Debit)>0 || parseFloat(lastRow.Credit)>0 )  ){
+        handleAddRow();
       }
-      const updatedRow = {
-        ...row,
-        [field]: value,
-      };
-      if (field === "Debit" && parseFloat(value) > 0) {
-        updatedRow.Credit = "0";
-      } else if (field === "Credit" && parseFloat(value) > 0) {
-        updatedRow.Debit = "0";
-      }
-      return updatedRow;
+    }
+  }
+
+
+   function handleInputChange(
+    id: string,
+    field: keyof ITableData,
+    value: string,
+  ) {
+    setTableData(function (prevRows) {
+      return prevRows.map((row) => {
+        if (row.id !== id) {
+          return row;
+        }
+        const updatedRow = {
+          ...row,
+          [field]: value,
+        };
+        if (field === "Debit" && parseFloat(value) > 0) {
+          updatedRow.Credit = "0";
+        } else if (field === "Credit" && parseFloat(value) > 0) {
+          updatedRow.Debit = "0";
+        }
+        return updatedRow;
+      });
     });
-  });
-}
+  }
 
- 
 
-  // const [isFocused, setIsFocused] = useState(false);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -118,15 +135,22 @@ export default function Table() {
           </thead>
 
           {/* Table Body */}
-          <tbody className="divide-y divide-slate-200 bg-white font-medium text-slate-800">
-            {tebleData.map((row, index) => (
-              <TableRow key={row.id} row={row} index={index} handleInputChange={handleInputChange} />
+          <tbody
+            onKeyDown={handleKeyDown}
+            className="divide-y divide-slate-200 bg-white font-medium text-slate-800"
+          >
+            {tableData.map((row, index) => (
+              <TableRow
+                key={row.id}
+                row={row}
+                index={index}
+                handleInputChange={handleInputChange}
+              />
             ))}
           </tbody>
 
           {/* Table Foter */}
           <TableFooter />
-         
         </table>
       </div>
     </div>

@@ -46,6 +46,7 @@ export default function TableRow({
       >
         <NumericFormat
           value={row.Debit}
+          data-nav="cell"
           thousandSeparator=","
           decimalScale={4}
           fixedDecimalScale
@@ -68,6 +69,7 @@ export default function TableRow({
       >
         <NumericFormat
           value={row.Credit}
+          data-nav="cell"
           thousandSeparator=","
           decimalScale={4}
           fixedDecimalScale
@@ -85,6 +87,7 @@ export default function TableRow({
         <select
           className="w-full h-full px-2.5 py-2 bg-transparent outline-none text-slate-700 cursor-pointer"
           value={row.Account}
+          data-nav="cell"
           onChange={(e) => {
             handleInputChange(row.id, "Account", e.target.value);
           }}
@@ -100,6 +103,7 @@ export default function TableRow({
         <select
           className="w-full h-full px-2 py-2 bg-transparent outline-none text-slate-700 cursor-pointer"
           value={row.Currency}
+          data-nav="cell"
           onChange={(e) => {
             handleInputChange(row.id, "Currency", e.target.value);
           }}
@@ -114,6 +118,7 @@ export default function TableRow({
       <td className="p-0 transition-colors hover:ring-1 hover:ring-orange-500 hover:ring-inset focus-within:ring-1 focus-within:ring-orange-500 focus-within:ring-inset focus-within:bg-white focus-within:z-10 relative">
         <input
           type="text"
+          data-nav="cell"
           className="w-full h-full px-2 py-2 text-right font-mono bg-transparent outline-none text-slate-800"
           value={row.Rate}
           onChange={(e) => {
@@ -126,6 +131,7 @@ export default function TableRow({
       <td className="p-0 transition-colors hover:ring-1 hover:ring-orange-500 hover:ring-inset focus-within:ring-1 focus-within:ring-orange-500 focus-within:ring-inset focus-within:bg-white focus-within:z-10 relative">
         <input
           type="date"
+          data-nav="cell"
           className="w-full h-full px-2.5 py-2 bg-transparent outline-none text-slate-700"
           value={row.Date}
           onChange={(e) => {
@@ -139,6 +145,7 @@ export default function TableRow({
         <select
           className="w-full h-full px-2.5 py-2 bg-transparent outline-none text-slate-700 cursor-pointer"
           value={row.CostCenter}
+          data-nav="cell"
           onChange={(e) => {
             handleInputChange(row.id, "CostCenter", e.target.value);
           }}
@@ -156,6 +163,7 @@ export default function TableRow({
           placeholder="Line description..."
           className="w-full h-full px-3 py-2 bg-transparent outline-none text-slate-700 placeholder-slate-400"
           value={row.Description}
+          data-nav="cell"
           onChange={(e) => {
             handleInputChange(row.id, "Description", e.target.value);
           }}
