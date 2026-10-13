@@ -17,6 +17,7 @@ export default function TableRow({
   index,
   handleInputChange,
   validationError,
+  
 }: TableRowProps) {
   const isDebitDisabled = parseFloat(row.Credit) > 0;
   const isCreditDisabled = parseFloat(row.Debit) > 0;
@@ -26,8 +27,8 @@ export default function TableRow({
     validationError?.field === "ALL_REQUIRED";
   const isDebitError =
     validationError?.rowId === row.id && validationError?.field === "Debit";
-  const isCreditError =
-    validationError?.rowId === row.id && validationError?.field === "Credit";
+  // const isCreditError =
+  //   validationError?.rowId === row.id && validationError?.field === "Credit";
   const isAccountError =
     validationError?.rowId === row.id && validationError?.field === "Account";
   return (
@@ -67,8 +68,7 @@ export default function TableRow({
           fixedDecimalScale
           allowNegative={false}
           disabled={isDebitDisabled}
-          className="w-full h-full px-2 py-2 bg-transparent text-right font-mono outline-none text-slate-800 disabled:cursor-not-allowed 
-               "
+          className="w-full h-full px-2 py-2 bg-transparent text-right font-mono outline-none text-slate-800 disabled:cursor-not-allowed "
           onValueChange={(values) => {
             handleInputChange(row.id, "Debit", values.value || "0");
           }}

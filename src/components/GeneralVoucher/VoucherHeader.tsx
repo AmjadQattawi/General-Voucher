@@ -24,9 +24,9 @@ export default function VoucherHeader() {
           <h1 className="text-2xl font-bold text-slate-900">
             General Voucher
           </h1>
-          <p className="text-sm text-slate-600">
+          {/* <p className="text-sm text-slate-600">
             Create and manage journal entries
-          </p>
+          </p> */}
         </div>
       </div>
 

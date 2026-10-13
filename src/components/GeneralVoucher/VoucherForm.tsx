@@ -8,18 +8,17 @@ export default function VoucherForm() {
       <div className="p-5 space-y-4">
         {/* Top 4 Inputs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Automatic number */}
+
+          {/* Voucher Date */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="auto-number" className="font-medium  ">
-              Automatic number
+            <label htmlFor="voucher-date" className="font-medium  ">
+              Voucher Date
             </label>
             <input
-              type="text"
-              id="auto-number"
-              disabled
-              readOnly
-              defaultValue="1797"
-              className={`${inputStyles} bg-slate-100/80 text-slate-500 cursor-not-allowed hover:border-slate-300`}
+              type="date"
+              id="voucher-date"
+              defaultValue={new Date().toISOString().split("T")[0]}
+              className={inputStyles}
             />
           </div>
 
@@ -36,16 +35,20 @@ export default function VoucherForm() {
             />
           </div>
 
-          {/* Voucher Date */}
+
+
+                    {/* Automatic number */}
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="voucher-date" className="font-medium  ">
-              Voucher Date
+            <label htmlFor="auto-number" className="font-medium  ">
+              Automatic number
             </label>
             <input
-              type="date"
-              id="voucher-date"
-              defaultValue={new Date().toISOString().split("T")[0]}
-              className={inputStyles}
+              type="text"
+              id="auto-number"
+              disabled
+              readOnly
+              defaultValue="1797"
+              className={`${inputStyles} bg-slate-100/80 text-slate-500 cursor-not-allowed hover:border-slate-300`}
             />
           </div>
 
