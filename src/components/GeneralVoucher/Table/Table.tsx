@@ -2,6 +2,11 @@ import { useState } from "react";
 import TableRow from "./TableRow";
 import TableFooter from "./TableFooter";
 
+export interface IValidationError {
+  rowId: string;
+  field: "Account" | "Debit" | "Credit" | "ALL_REQUIRED";
+}
+
 export interface ITableData {
   id: string;
   isChecked: boolean;
@@ -15,30 +20,30 @@ export interface ITableData {
   Description: string;
 }
 
-  function createEmptyRow(): ITableData {
-    return {
-      id: crypto.randomUUID(), 
-      isChecked: false,
-      Debit: "0",
-      Credit: "0",
-      Account: "",
-      Currency: "JD",
-      Rate: "1.0000",
-      Date: new Date().toISOString().split("T")[0],
-      CostCenter: "",
-      Description: "",
-    };
+function createEmptyRow(): ITableData {
+  return {
+    id: crypto.randomUUID(),
+    isChecked: false,
+    Debit: "0",
+    Credit: "0",
+    Account: "",
+    Currency: "JD",
+    Rate: "1.0000",
+    Date: new Date().toISOString().split("T")[0],
+    CostCenter: "",
+    Description: "",
+  };
+}
+
+export default function Table() {
+  const [tableData, setTableData] = useState<ITableData[]>([createEmptyRow()]);
+
+  const [validationError, setValidationError] =
+    useState<IValidationError | null>(null);
+
+  function handleAddRow() {
+    setTableData([...tableData, createEmptyRow()]);
   }
-
-  export default function Table() {
-    const [tableData, setTableData] = useState<ITableData[]>([createEmptyRow()]);
-
-  
-
-    function handleAddRow(){
-      setTableData([...tableData , createEmptyRow()]) 
-      
-    }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLElement>) {
     if (e.key !== "Enter") return;
@@ -53,20 +58,57 @@ export interface ITableData {
     const nextElement = allInputs[currentIndex + 1];
     if (nextElement) {
       nextElement.focus();
-    }else{
+    } else {
       const lastRow = tableData[tableData.length - 1];
-      if(lastRow.Account !== "" &&  (parseFloat(lastRow.Debit)>0 || parseFloat(lastRow.Credit)>0 )  ){
+      if (
+        lastRow.Account !== "" &&
+        (parseFloat(lastRow.Debit) > 0 || parseFloat(lastRow.Credit) > 0)
+      ) {
         handleAddRow();
+        setTimeout(() => {
+          const freshInputs = Array.from(
+            document.querySelectorAll<HTMLElement>(
+              '[data-nav="cell"]:not([disabled])',
+            ),
+          );
+          freshInputs[currentIndex + 1]?.focus();
+        }, 0);
+      } else if (
+        lastRow.Account !== "" &&
+        parseFloat(lastRow.Debit) === 0 &&
+        parseFloat(lastRow.Credit) === 0
+      ) {
+        // هون المشكلة
+        console.log("you must fill Debit or credit");
+        setValidationError({ rowId: lastRow.id, field: "Debit" });
+        focusErrorField("Debit");
+      } else if (
+        lastRow.Account === "" &&
+        (parseFloat(lastRow.Debit) > 0 || parseFloat(lastRow.Credit) > 0)
+      ) {
+        console.log("you must fill Account");
+        setValidationError({ rowId: lastRow.id, field: "Account" });
+        focusErrorField("Account");
+      } else if (
+        lastRow.Account === "" &&
+        parseFloat(lastRow.Debit) === 0 &&
+        parseFloat(lastRow.Credit) === 0
+      ) {
+        console.log("you must fill Account and (Debit Or Credit)");
+        setValidationError({ rowId: lastRow.id, field: "ALL_REQUIRED" });
+        focusErrorField("Debit");
       }
     }
   }
 
-
-   function handleInputChange(
+  function handleInputChange(
     id: string,
     field: keyof ITableData,
     value: string,
   ) {
+    if (validationError?.rowId === id) {
+      setValidationError(null);
+    }
     setTableData(function (prevRows) {
       return prevRows.map((row) => {
         if (row.id !== id) {
@@ -86,11 +128,16 @@ export interface ITableData {
     });
   }
 
-
+  function focusErrorField(field: "Account" | "Debit" | "Credit") {
+    const targetInput = document.querySelector<HTMLElement>(
+      `tbody tr:last-child [data-field="${field}"]`,
+    );
+    targetInput?.focus();
+  }
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-480px)] min-h-55">
+      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-480px)]  ">
         <table className="w-full border-collapse text-xs text-left">
           {/* Table Head */}
           <thead className="sticky top-0 z-10 bg-slate-200 font-semibold uppercase tracking-wider border-b border-slate-300">
@@ -145,6 +192,7 @@ export interface ITableData {
                 row={row}
                 index={index}
                 handleInputChange={handleInputChange}
+                validationError={validationError}
               />
             ))}
           </tbody>

@@ -1,5 +1,5 @@
 import { NumericFormat } from "react-number-format";
-import type { ITableData } from "./Table";
+import type { ITableData, IValidationError } from "./Table";
 
 type TableRowProps = {
   row: ITableData;
@@ -9,23 +9,34 @@ type TableRowProps = {
     field: keyof ITableData,
     value: string,
   ) => void;
+  validationError: IValidationError | null;
 };
 
 export default function TableRow({
   row,
   index,
   handleInputChange,
+  validationError,
 }: TableRowProps) {
   const isDebitDisabled = parseFloat(row.Credit) > 0;
   const isCreditDisabled = parseFloat(row.Debit) > 0;
 
+  const isAllRequired =
+    validationError?.rowId === row.id &&
+    validationError?.field === "ALL_REQUIRED";
+  const isDebitError =
+    validationError?.rowId === row.id && validationError?.field === "Debit";
+  const isCreditError =
+    validationError?.rowId === row.id && validationError?.field === "Credit";
+  const isAccountError =
+    validationError?.rowId === row.id && validationError?.field === "Account";
   return (
     <tr
       className={`divide-x divide-slate-200 ${
         index % 2 !== 0 ? "bg-slate-100" : "bg-white"
       }`}
     >
-      {/* Select / Row Action */}
+      {/* checkbox */}
       <td className="px-2 py-1 text-center bg-slate-50/40">
         <input
           type="checkbox"
@@ -36,23 +47,28 @@ export default function TableRow({
           }
         />
       </td>
+
       {/* Debit */}
       <td
         className={`p-0 transition-colors relative ${
-          isDebitDisabled
-            ? "  cursor-not-allowed"
-            : "hover:ring-1 hover:ring-orange-500 hover:ring-inset focus-within:ring-1 focus-within:ring-orange-500 focus-within:ring-inset focus-within:bg-white focus-within:z-10"
+          isDebitError || isAllRequired
+            ? "ring-2 ring-red-500 ring-inset bg-red-50/20"
+            : isDebitDisabled
+              ? "cursor-not-allowed"
+              : "hover:ring-1 hover:ring-orange-500 hover:ring-inset focus-within:ring-1 focus-within:ring-orange-500 focus-within:ring-inset"
         }`}
       >
         <NumericFormat
           value={row.Debit}
+          data-field="Debit"
           data-nav="cell"
           thousandSeparator=","
           decimalScale={4}
           fixedDecimalScale
           allowNegative={false}
           disabled={isDebitDisabled}
-          className="w-full h-full px-2 py-2 bg-transparent text-right font-mono outline-none text-slate-800 disabled:cursor-not-allowed"
+          className="w-full h-full px-2 py-2 bg-transparent text-right font-mono outline-none text-slate-800 disabled:cursor-not-allowed 
+               "
           onValueChange={(values) => {
             handleInputChange(row.id, "Debit", values.value || "0");
           }}
@@ -62,13 +78,16 @@ export default function TableRow({
       {/* Credit */}
       <td
         className={`p-0 transition-colors relative ${
-          isCreditDisabled
-            ? "  cursor-not-allowed"
-            : "hover:ring-1 hover:ring-orange-500 hover:ring-inset focus-within:ring-1 focus-within:ring-orange-500 focus-within:ring-inset focus-within:bg-white focus-within:z-10"
+          isAllRequired
+            ? "ring-2 ring-red-500 ring-inset bg-red-50/20"
+            : isCreditDisabled
+              ? "  cursor-not-allowed"
+              : "hover:ring-1 hover:ring-orange-500 hover:ring-inset focus-within:ring-1 focus-within:ring-orange-500 focus-within:ring-inset focus-within:bg-white focus-within:z-10"
         }`}
       >
         <NumericFormat
           value={row.Credit}
+          data-field="Credit"
           data-nav="cell"
           thousandSeparator=","
           decimalScale={4}
@@ -83,10 +102,17 @@ export default function TableRow({
       </td>
 
       {/* Account */}
-      <td className="p-0 transition-colors hover:ring-1 hover:ring-orange-500 hover:ring-inset focus-within:ring-1 focus-within:ring-orange-500 focus-within:ring-inset focus-within:bg-white focus-within:z-10 relative">
+      <td
+        className={`p-0 transition-colors relative ${
+          isAccountError || isAllRequired
+            ? "ring-2 ring-red-500 ring-inset bg-red-50/20 z-10"
+            : "hover:ring-1 hover:ring-orange-500 hover:ring-inset focus-within:ring-1 focus-within:ring-orange-500 focus-within:ring-inset focus-within:bg-white focus-within:z-10"
+        }`}
+      >
         <select
-          className="w-full h-full px-2.5 py-2 bg-transparent outline-none text-slate-700 cursor-pointer"
+          className="w-full h-full px-2.5 py-2 bg-transparent outline-none text-slate-700 cursor-pointer "
           value={row.Account}
+          data-field="Account"
           data-nav="cell"
           onChange={(e) => {
             handleInputChange(row.id, "Account", e.target.value);
