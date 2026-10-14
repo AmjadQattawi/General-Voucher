@@ -15,7 +15,7 @@ function formatAmount(val: number): string {
 
 export default function TableFooter(   {totalDebit , totalCredit , difference } :  TableFooterProps) {
 
-  const isBalanced = difference === 0 ;
+  const isBalanced = difference === 0 && totalDebit > 0;
 
   return (
     <tfoot className="sticky bottom-0 z-10 bg-slate-200 border-t-2 border-slate-300 font-bold text-slate-800">

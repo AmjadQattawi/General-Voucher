@@ -1,43 +1,22 @@
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import TableRow from "./TableRow";
 import TableFooter from "./TableFooter";
 import { Trash } from "lucide-react";
+import tableReducer from "../../../reducers/TablReducer";
+import {
+  createEmptyRow,
+  type ITableData,
+  type IValidationError,
+} from "../../../reducers/voucherTypes";
 
-export interface IValidationError {
-  rowId: string;
-  field: "Account" | "Debit" | "Credit" | "ALL_REQUIRED";
-}
+type TableProps = {
+  isReadOnly: boolean;
+};
 
-export interface ITableData {
-  id: string;
-  isChecked: boolean;
-  Debit: string;
-  Credit: string;
-  Account: string;
-  Currency: string;
-  Rate: string;
-  Date: string;
-  CostCenter: string;
-  Description: string;
-}
+export default function Table({ isReadOnly }: TableProps) {
+  // const [tableData, setTableData] = useState<ITableData[]>([createEmptyRow()]);
 
-function createEmptyRow(): ITableData {
-  return {
-    id: crypto.randomUUID(),
-    isChecked: false,
-    Debit: "0",
-    Credit: "0",
-    Account: "",
-    Currency: "JD",
-    Rate: "1.0000",
-    Date: new Date().toISOString().split("T")[0],
-    CostCenter: "",
-    Description: "",
-  };
-}
-
-export default function Table() {
-  const [tableData, setTableData] = useState<ITableData[]>([createEmptyRow()]);
+  const [tableData, dispatch] = useReducer(tableReducer, [createEmptyRow()]);
 
   const [validationError, setValidationError] =
     useState<IValidationError | null>(null);
@@ -53,7 +32,7 @@ export default function Table() {
   const difference = Math.abs(totalDebit - totalCredit);
 
   function handleAddRow() {
-    setTableData([...tableData, createEmptyRow()]);
+    dispatch({ type: "AddRow" });
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLElement>) {
@@ -73,7 +52,8 @@ export default function Table() {
       const lastRow = tableData[tableData.length - 1];
       if (
         lastRow.Account !== "" &&
-        (parseFloat(lastRow.Debit) > 0 || parseFloat(lastRow.Credit) > 0)
+        ((parseFloat(lastRow.Debit) > 0 && parseFloat(lastRow.Credit) === 0) ||
+          (parseFloat(lastRow.Credit) > 0 && parseFloat(lastRow.Debit) === 0))
       ) {
         handleAddRow();
         setTimeout(() => {
@@ -89,24 +69,32 @@ export default function Table() {
         parseFloat(lastRow.Debit) === 0 &&
         parseFloat(lastRow.Credit) === 0
       ) {
-        console.log("you must fill Debit or credit");
+        // console.log("you must fill Debit or credit");
         setValidationError({ rowId: lastRow.id, field: "Debit" });
         focusErrorField("Debit");
       } else if (
         lastRow.Account === "" &&
         (parseFloat(lastRow.Debit) > 0 || parseFloat(lastRow.Credit) > 0)
       ) {
-        console.log("you must fill Account");
+        // console.log("you must fill Account");
         setValidationError({ rowId: lastRow.id, field: "Account" });
         focusErrorField("Account");
+      } else if (
+        parseFloat(lastRow.Debit) > 0 &&
+        parseFloat(lastRow.Credit) > 0
+      ) {
+        // You can fill in either the credit or debit
+        focusErrorField("Debit");
+        setValidationError({ rowId: lastRow.id, field: "Debit&Credit" });
       } else if (
         lastRow.Account === "" &&
         parseFloat(lastRow.Debit) === 0 &&
         parseFloat(lastRow.Credit) === 0
       ) {
-        console.log("you must fill Account and (Debit Or Credit)");
-        setValidationError({ rowId: lastRow.id, field: "ALL_REQUIRED" });
-        focusErrorField("Debit");
+        // console.log("you must fill Account and (Debit Or Credit)");
+        setValidationError(null);
+        const postButton = document.getElementById("btn-post-entry");
+        postButton?.focus();
       }
     }
   }
@@ -114,28 +102,12 @@ export default function Table() {
   function handleInputChange(
     id: string,
     field: keyof ITableData,
-    value: string,
+    value: string | boolean,
   ) {
     if (validationError?.rowId === id) {
       setValidationError(null);
     }
-    setTableData(function (prevRows) {
-      return prevRows.map((row) => {
-        if (row.id !== id) {
-          return row;
-        }
-        const updatedRow = {
-          ...row,
-          [field]: value,
-        };
-        if (field === "Debit" && parseFloat(value) > 0) {
-          updatedRow.Credit = "0";
-        } else if (field === "Credit" && parseFloat(value) > 0) {
-          updatedRow.Debit = "0";
-        }
-        return updatedRow;
-      });
-    });
+    dispatch({ type: "UPDATE_ROW_FIELD", payload: { id, field, value } });
   }
 
   function focusErrorField(field: "Account" | "Debit" | "Credit") {
@@ -145,30 +117,25 @@ export default function Table() {
     targetInput?.focus();
   }
 
-
-  const isAllSelected = tableData.length > 0 && tableData.every((row) => row.isChecked);
-  function handleSelectAll(e:React.ChangeEvent<HTMLInputElement>) {
-    setTableData(  
-      tableData.map((row)=>(
-        {...row , isChecked:e.target.checked}
-      ))
-    )
+  const isAllSelected =
+    tableData.length > 0 && tableData.every((row) => row.isChecked);
+  function handleSelectAll(e: React.ChangeEvent<HTMLInputElement>) {
+    dispatch({ type: "SELECT_ALL", payload: e.target.checked });
   }
 
+  function handleDeleteSelected() {
+    dispatch({ type: "DELETE_SELECTED" });
 
-function handleDeleteSelected() {
-  const newTableData = tableData.filter((row) => !row.isChecked);
-  if (newTableData.length === 0) {
-    setTableData([createEmptyRow()]);
-  } else {
-    setTableData(newTableData);
+    setValidationError(null);
   }
-  setValidationError(null);
-}
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-480px)]  ">
+      <div
+        className={`overflow-x-auto overflow-y-auto max-h-[calc(100vh-480px)] ${
+          isReadOnly ? "pointer-events-none select-none opacity-80" : ""
+        }`}
+      >
         <table className="w-full border-collapse text-xs text-left">
           {/* Table Head */}
           <thead className="sticky top-0 z-10 bg-slate-200 font-semibold uppercase tracking-wider border-b border-slate-300">

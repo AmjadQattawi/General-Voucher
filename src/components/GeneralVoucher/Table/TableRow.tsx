@@ -1,5 +1,5 @@
 import { NumericFormat } from "react-number-format";
-import type { ITableData, IValidationError } from "./Table";
+import type { ITableData, IValidationError } from "../../../reducers/voucherTypes";
 
 type TableRowProps = {
   row: ITableData;
@@ -7,7 +7,7 @@ type TableRowProps = {
   handleInputChange: (
     id: string,
     field: keyof ITableData,
-    value: string,
+    value: string | boolean,
   ) => void;
   validationError: IValidationError | null;
 };
@@ -19,9 +19,9 @@ export default function TableRow({
   validationError,
   
 }: TableRowProps) {
-  const isDebitDisabled = parseFloat(row.Credit) > 0;
-  const isCreditDisabled = parseFloat(row.Debit) > 0;
-
+  // const isDebitDisabled = parseFloat(row.Credit) > 0;
+  // const isCreditDisabled = parseFloat(row.Debit) > 0;
+  const isDibitAndCreditError = validationError?.rowId === row.id &&  validationError.field === "Debit&Credit";
   const isAllRequired =
     validationError?.rowId === row.id &&
     validationError?.field === "ALL_REQUIRED";
@@ -44,18 +44,18 @@ export default function TableRow({
           className="rounded border-slate-300 text-orange-600 focus:ring-0 cursor-pointer"
           checked={row.isChecked}
           onChange={(e) =>
-            handleInputChange(row.id, "isChecked", String(e.target.checked))
+            handleInputChange(row.id, "isChecked", e.target.checked)
           }
         />
-      </td>
+      </td> 
 
       {/* Debit */}
       <td
         className={`p-0 transition-colors relative ${
-          isDebitError || isAllRequired
+          isDebitError || isAllRequired || isDibitAndCreditError
             ? "ring-2 ring-red-500 ring-inset bg-red-50/20"
-            : isDebitDisabled
-              ? "cursor-not-allowed"
+            // : isDebitDisabled
+            //   ? "cursor-not-allowed"
               : "hover:ring-1 hover:ring-orange-500 hover:ring-inset focus-within:ring-1 focus-within:ring-orange-500 focus-within:ring-inset"
         }`}
       >
@@ -67,7 +67,7 @@ export default function TableRow({
           decimalScale={4}
           fixedDecimalScale
           allowNegative={false}
-          disabled={isDebitDisabled}
+          // disabled={isDebitDisabled}
           className="w-full h-full px-2 py-2 bg-transparent text-right font-mono outline-none text-slate-800 disabled:cursor-not-allowed "
           onValueChange={(values) => {
             handleInputChange(row.id, "Debit", values.value || "0");
@@ -78,10 +78,10 @@ export default function TableRow({
       {/* Credit */}
       <td
         className={`p-0 transition-colors relative ${
-          isAllRequired
+          isAllRequired || isDibitAndCreditError
             ? "ring-2 ring-red-500 ring-inset bg-red-50/20"
-            : isCreditDisabled
-              ? "  cursor-not-allowed"
+            // : isCreditDisabled
+            //   ? "  cursor-not-allowed"
               : "hover:ring-1 hover:ring-orange-500 hover:ring-inset focus-within:ring-1 focus-within:ring-orange-500 focus-within:ring-inset focus-within:bg-white focus-within:z-10"
         }`}
       >
@@ -93,7 +93,7 @@ export default function TableRow({
           decimalScale={4}
           fixedDecimalScale
           allowNegative={false}
-          disabled={isCreditDisabled}
+          // disabled={isCreditDisabled}
           className="w-full h-full px-2 py-2 bg-transparent text-right font-mono outline-none text-slate-800 disabled:cursor-not-allowed"
           onValueChange={(values) => {
             handleInputChange(row.id, "Credit", values.value || "0");
